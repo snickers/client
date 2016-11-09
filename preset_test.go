@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"encoding/json"
 	"net/http"
 )
 
@@ -14,23 +15,6 @@ var _ = Describe("Presets", func() {
 	)
 
 	BeforeEach(func() {
-		baselinePreset = Preset{
-			Name:        "baseline_preset",
-			Description: "Baseline Preset",
-			Container:   "mp4",
-			RateControl: "vbr",
-			Video: VideoPreset{
-				Height:  "720",
-				Width:   "1280",
-				Codec:   "h264",
-				Bitrate: "10000",
-			},
-			Audio: AudioPreset{
-				Codec:   "aac",
-				Bitrate: "64000",
-			},
-		}
-
 		rawJSONPreset = `{
 		  "name": "baseline_preset",
 		  "description": "Baseline Preset",
@@ -47,6 +31,9 @@ var _ = Describe("Presets", func() {
 		      "bitrate": "64000"
 		  }
 		}`
+
+		json.Unmarshal([]byte(rawJSONPreset), &baselinePreset)
+
 	})
 
 	It("should delete a preset given a preset name", func() {
@@ -79,42 +66,11 @@ var _ = Describe("Presets", func() {
 	})
 
 	It("should create a preset", func() {
-		server := StartFakeServer(http.StatusOK, `{
-				  "name": "new_preset",
-				  "description": "New Preset",
-				  "container": "webm",
-				  "rateControl": "vbr",
-				  "video": {
-				      "height": "720",
-				      "width": "1280",
-				      "codec": "h264",
-				      "bitrate": "10000"
-				   },
-				  "audio": {
-				      "codec": "aac",
-				      "bitrate": "64000"
-				  }
-			}`)
+		server := StartFakeServer(http.StatusOK, rawJSONPreset)
 		defer server.Close()
 		client, _ := NewClient(server.URL)
-		testPreset := Preset{
-			Name:        "new_preset",
-			Description: "New Preset",
-			Container:   "webm",
-			RateControl: "vbr",
-			Video: VideoPreset{
-				Height:  "720",
-				Width:   "1280",
-				Codec:   "h264",
-				Bitrate: "10000",
-			},
-			Audio: AudioPreset{
-				Codec:   "aac",
-				Bitrate: "64000",
-			},
-		}
-		respPreset, err := client.CreatePreset(testPreset)
-		Expect(respPreset).To(Equal(&testPreset))
+		respPreset, err := client.CreatePreset(baselinePreset)
+		Expect(respPreset).To(Equal(&baselinePreset))
 		Expect(err).NotTo(HaveOccurred())
 	})
 
