@@ -44,6 +44,19 @@ var _ = Describe("Presets", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("should fail to delete a preset", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to delete a preset",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to delete a preset")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		err := client.DeletePreset("error_preset")
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
+	})
+
 	It("should return a list of presets", func() {
 		expectedPreset := []Preset{
 			baselinePreset,
@@ -56,6 +69,19 @@ var _ = Describe("Presets", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("should fail to retreive a list of presets", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to retrieve a list presets",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to retrieve a list presets")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.GetPresets()
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
+	})
+
 	It("should get a preset details given a preset name", func() {
 		server := StartFakeServer(http.StatusOK, rawJSONPreset)
 		defer server.Close()
@@ -65,6 +91,19 @@ var _ = Describe("Presets", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("should fail to retreive a given preset details", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to retrieve preset details",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to retrieve preset details")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.GetPreset("error_preset")
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
+	})
+
 	It("should create a preset", func() {
 		server := StartFakeServer(http.StatusOK, rawJSONPreset)
 		defer server.Close()
@@ -72,6 +111,19 @@ var _ = Describe("Presets", func() {
 		respPreset, err := client.CreatePreset(baselinePreset)
 		Expect(respPreset).To(Equal(&baselinePreset))
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should fail to create a preset", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to create a preset",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to create a preset")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.CreatePreset(baselinePreset)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
 	})
 
 })
