@@ -4,49 +4,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 )
 
 var _ = Describe("Presets", func() {
 	var (
-		client *Client
+		baselinePreset Preset
+		rawJSONPreset  string
 	)
 
 	BeforeEach(func() {
-		client, _ = NewClient("http://localhost:8000")
-	})
-
-	It("should create a preset", func() {
-		var req *http.Request
-		var data []byte
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			req = r
-			data, _ = ioutil.ReadAll(r.Body)
-			w.Write([]byte(`{
-				  "name": "test_preset",
-				  "description": "Test Preset",
-				  "container": "mp4",
-				  "rateControl": "vbr",
-				  "video": {
-				      "height": "720",
-				      "width": "1280",
-				      "codec": "h264",
-				      "bitrate": "10000",
-				   },
-				  "audio": {
-				      "codec": "aac",
-				      "bitrate": "64000"
-				  }
-			}`))
-		}))
-
-		defer server.Close()
-
-		preset := Preset{
-			Name:        "test_preset",
-			Description: "Test Preset",
+		baselinePreset = Preset{
+			Name:        "baseline_preset",
+			Description: "Baseline Preset",
 			Container:   "mp4",
 			RateControl: "vbr",
 			Video: VideoPreset{
@@ -60,8 +30,91 @@ var _ = Describe("Presets", func() {
 				Bitrate: "64000",
 			},
 		}
-		respPreset, err := client.CreatePreset(preset)
-		Expect(respPreset).To(Equal(&preset))
+
+		rawJSONPreset = `{
+		  "name": "baseline_preset",
+		  "description": "Baseline Preset",
+		  "container": "mp4",
+		  "rateControl": "vbr",
+		  "video": {
+		      "height": "720",
+		      "width": "1280",
+		      "codec": "h264",
+		      "bitrate": "10000"
+		   },
+		  "audio": {
+		      "codec": "aac",
+		      "bitrate": "64000"
+		  }
+		}`
+	})
+
+	It("should delete a preset given a preset name", func() {
+		server := StartFakeServer(http.StatusOK, rawJSONPreset)
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		err := client.DeletePreset("baseline_preset")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should return a list of presets", func() {
+		expectedPreset := []Preset{
+			baselinePreset,
+		}
+		server := StartFakeServer(http.StatusOK, "["+rawJSONPreset+"]")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		respPreset, err := client.GetPresets()
+		Expect(respPreset).To(Equal(expectedPreset))
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should get a preset details given a preset name", func() {
+		server := StartFakeServer(http.StatusOK, rawJSONPreset)
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		respPreset, err := client.GetPreset("baseline_preset")
+		Expect(respPreset).To(Equal(&baselinePreset))
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should create a preset", func() {
+		server := StartFakeServer(http.StatusOK, `{
+				  "name": "new_preset",
+				  "description": "New Preset",
+				  "container": "webm",
+				  "rateControl": "vbr",
+				  "video": {
+				      "height": "720",
+				      "width": "1280",
+				      "codec": "h264",
+				      "bitrate": "10000"
+				   },
+				  "audio": {
+				      "codec": "aac",
+				      "bitrate": "64000"
+				  }
+			}`)
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		testPreset := Preset{
+			Name:        "new_preset",
+			Description: "New Preset",
+			Container:   "webm",
+			RateControl: "vbr",
+			Video: VideoPreset{
+				Height:  "720",
+				Width:   "1280",
+				Codec:   "h264",
+				Bitrate: "10000",
+			},
+			Audio: AudioPreset{
+				Codec:   "aac",
+				Bitrate: "64000",
+			},
+		}
+		respPreset, err := client.CreatePreset(testPreset)
+		Expect(respPreset).To(Equal(&testPreset))
 		Expect(err).NotTo(HaveOccurred())
 	})
 
