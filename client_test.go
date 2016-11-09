@@ -14,6 +14,14 @@ var _ = Describe("Client", func() {
 		Expect(xclient.Endpoint).To(Equal("http://localhost.api.snickers/"))
 	})
 
+	It("should create an instance of APIError", func() {
+		apiError := &APIError{
+			Status: http.StatusInternalServerError,
+			Errors: "Internal Server Error",
+		}
+		Expect(apiError.Error()).To(Equal(`Error returned by the Snickers API: {"status":500,"errors":"Internal Server Error"}`))
+	})
+
 	It("should execute do generic method", func() {
 		server := StartFakeServer(http.StatusOK, `[{
 				  "name": "mp4_240p",
