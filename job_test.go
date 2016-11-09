@@ -65,6 +65,19 @@ var _ = Describe("Jobs", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("should fail to retrieve a list of jobs", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to retrieve a list of jobs",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to retrieve a list of jobs")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.GetJobs()
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
+	})
+
 	It("should return a given job details", func() {
 		server := StartFakeServer(http.StatusOK, jobJSONOutput)
 		defer server.Close()
@@ -72,6 +85,19 @@ var _ = Describe("Jobs", func() {
 		respJob, err := client.GetJob("5iNcv6pMWYVCZhRL")
 		Expect(respJob).To(Equal(&job))
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should fail to retrieve a given job details", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to retrieve job details",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to retrieve job details")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.GetJob("5iNcv6pMWYVCZhRL")
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
 	})
 
 	It("should start a job given a job id", func() {
@@ -82,6 +108,19 @@ var _ = Describe("Jobs", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("should fail to start a job", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to start a job",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to start a job")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.StartJob("5iNcv6pMWYVCZhRL")
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
+	})
+
 	It("should create a job", func() {
 		server := StartFakeServer(http.StatusOK, jobJSONOutput)
 		defer server.Close()
@@ -89,6 +128,19 @@ var _ = Describe("Jobs", func() {
 		respJob, err := client.CreateJob(jobInput)
 		Expect(respJob).To(Equal(&job))
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should fail to create a job", func() {
+		apiError := &APIError{
+			Status: http.StatusBadRequest,
+			Errors: "Failed to create a job",
+		}
+		server := StartFakeServer(http.StatusBadRequest, "Failed to create a job")
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+		_, err := client.CreateJob(jobInput)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(apiError))
 	})
 
 })

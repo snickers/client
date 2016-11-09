@@ -48,4 +48,29 @@ var _ = Describe("Client", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 	})
+
+	It("should fail when passing invalid JSON to client.do method", func() {
+		server := StartFakeServer(http.StatusOK, `[{
+			  "name": "mp4_240p",
+			  "description": "Test Preset",
+			  "container": "mp4",
+			  "rateControl": "vbr",
+			  "video": {
+			    "height": "720",
+			    "width": "1280",
+			    "codec": "h264",
+			    "bitrate": "10000",
+			  },
+			  "audio": {
+			    "codec": "aac",
+			    "bitrate": "64000",
+			  }
+		}]`)
+		defer server.Close()
+		client, _ := NewClient(server.URL)
+
+		var respObj []Preset
+		err := client.do("GET", "/presets", nil, &respObj)
+		Expect(err).To(HaveOccurred())
+	})
 })
