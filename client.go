@@ -49,30 +49,16 @@ func (c *Client) do(method string, path string, body interface{}, out interface{
 		return err
 	}
 
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
-
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	respData, err := ioutil.ReadAll(resp.Body)
+
 	if err != nil {
 		return err
 	}
 
-	// var errRespWrapper map[string]*errorResponse
-	// err = json.Unmarshal(respData, &errRespWrapper)
-	// if err != nil {
-	// 	return fmt.Errorf("Error unmarshaling response: %s", err.Error())
-	// }
-
-	// if errResp := errRespWrapper["response"]; errResp.Errors.Error != "" {
-	// 	return &APIError{
-	// 		Message: errResp.Message,
-	// 		Errors:  []string{errResp.Errors.Error},
-	// 	}
-	// }
 	return json.Unmarshal(respData, out)
 }
