@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	"net/http"
 )
 
@@ -65,12 +66,13 @@ var _ = Describe("Client", func() {
 			    "codec": "aac",
 			    "bitrate": "64000",
 			  }
-		}]`)
+		]`)
 		defer server.Close()
 		client, _ := NewClient(server.URL)
-
 		var respObj []Preset
-		err := client.do("GET", "/presets", nil, &respObj)
+		err := client.do("GET", "/presets", "nil", &respObj)
+		fmt.Println(err)
 		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("invalid character '}' looking for beginning of object key string"))
 	})
 })
