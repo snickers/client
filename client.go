@@ -25,8 +25,8 @@ func NewClient(endpoint string) (*Client, error) {
 // APIError represents an error returned by the Snickers API.
 //
 type APIError struct {
-	Message string `json:",omitempty"`
-	Errors  []string
+	Status int    `json:"status,omitempty"`
+	Errors string `json:"errors,omitempty"`
 }
 
 // Error converts the whole interlying information to a representative string.
@@ -60,5 +60,16 @@ func (c *Client) do(method string, path string, body interface{}, out interface{
 		return err
 	}
 
-	return json.Unmarshal(respData, out)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return &APIError{
+			Status: resp.StatusCode,
+			Errors: string(respData),
+		}
+	}
+
+	if out != nil && len(respData) > 1 {
+		return json.Unmarshal(respData, out)
+	}
+
+	return nil
 }
