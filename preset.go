@@ -51,7 +51,7 @@ func (c *Client) GetPreset(presetName string) (*Preset, error) {
 }
 
 // CreatePreset creates a new preset
-func (c *Client) CreatePreset(preset *Preset) (*Preset, error) {
+func (c *Client) CreatePreset(preset Preset) (*Preset, error) {
 	var result *Preset
 	err := c.do("POST", "/presets", preset, &result)
 	if err != nil {
